@@ -123,7 +123,7 @@ _gpt_clr_flag:
 _gpt_disable:
 ; GPT_GPTSCR1 = 0x00
     lea        &GPT_GPTSCR1, a0        ; &GPT_GPTSCR1 -> a0 (hint: LEA)
-    move.b     #0, a0                  ; 0x00 -> GPT_GPTSCR1 (hint: MOVE.B)
+    move.b     #$00, a0                ; 0x00 -> GPT_GPTSCR1 (hint: MOVE.B)
     rts                                ; return
 
 ;-----------------------------------------------------------------------------------------------------------------------------------
@@ -152,9 +152,10 @@ _gpt_disable:
 ;-----------------------------------------------------------------------------------------------------------------------------------
 _gpt_enable:
 ; GPT_GPTSCR1 = 0x80
-                                        ; &GPT_GPTSCR1 -> a0 (hint: LEA)
-                                        ; 0x80 -> GPT_GPTSCR1 (hint: MOVE.B)
-                                        ; Return
+    lea        &GPT_GPTSCR1, a0        ; &GPT_GPTSCR1 -> a0 (hint: LEA)
+    move.b     #$80, a0                ; 0x80 -> GPT_GPTSCR1 (hint: MOVE.B)
+    rts                                ; return
+
 
 ;-----------------------------------------------------------------------------------------------------------------------------------
 ; FUNCTION: __declspec(register_abi) void gpt_incap_config(gpt_pin_t const p_pin, gpt_incap_edge_t const p_incap_edge)
