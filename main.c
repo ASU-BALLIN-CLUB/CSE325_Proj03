@@ -10,9 +10,12 @@
 
 #include "support_common.h"
 #include "gpio.h"
-#include "uc_dipsw.h"
 #include "uc_led.h"
 #include "dtim.h"
+#include "int.h"
+#include "uc_pushb.h"
+#include "global.h"
+#include "gpt.h"
 static void hw_init();
 __declspec(noreturn) int main();
 static void run();
