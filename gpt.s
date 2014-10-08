@@ -13,16 +13,16 @@
 ; Look at Table 25-3 on pp. 25-3 to 25-4 in the IMRM. The base address of the GPT register space is IPSBAR + 0x1A_0000. Table 25-3
 ; lists all of the GPT registers and their offsets from IPSBAR. Note that all of the GPT registers are 8-bits.
 ;===================================================================================================================================
-GPT_BASE:      .equ IPSBAR + ???
+GPT_BASE:      .equ IPSBAR + 0x1A_0000
 GPT_GPTCNT:    .equ GPT_BASE + $0004  ; 8-bit reg
 GPT_GPTCTL2:   .equ GPT_BASE + $000B  ; 8-bit reg
-GPT_GPTDDR:    ???
-GPT_GPTFLG1:   ???
-GPT_GPTIE:     ???
-GPT_GPTIOS:    ???
-GPT_GPTPORT:   ???
-GPT_GPTSCR1:   ???
-GPT_GPTSCR2:   ???
+GPT_GPTDDR:    .equ GPT_BASE + $001E  ; 8-bit reg
+GPT_GPTFLG1:   .equ GPT_BASE + $000E  ; 8-bit reg
+GPT_GPTIE:     .equ GPT_BASE + $000C  ; 8-bit reg
+GPT_GPTIOS:    .equ GPT_BASE + $0000  ; 8-bit reg
+GPT_GPTPORT:   .equ GPT_BASE + $001D  ; 8-bit reg
+GPT_GPTSCR1:   .equ GPT_BASE + $0006  ; 8-bit reg
+GPT_GPTSCR2:   .equ GPT_BASE + $000D  ; 8-bit reg
 
 ;===================================================================================================================================
 ; Public Functions
@@ -33,16 +33,16 @@ GPT_GPTSCR2:   ???
 ; Write assembly language code to declare each of the functions in this source file as global.
 ;===================================================================================================================================
 
-???
-???
-???
-???
+.global _gpt_clr_flag
+.global _void gpt_disable
+.global _void gpt_enable
+.global _void gpt_incap_config
 
 ;===================================================================================================================================
 ; Text Section
 ;===================================================================================================================================
 
-???
+.text
 
 ;-----------------------------------------------------------------------------------------------------------------------------------
 ; FUNCTION: __declspec(register_abi) void gpt_clr_flag(gpt_pin_t const p_pin)
