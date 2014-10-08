@@ -85,12 +85,12 @@ _gpt_clr_flag:
     movem.l    d0-d2/a0, (a7)          ; Save d0-d2 and a0 (pushed in this order: d2, d1, d0, a0)
 
 ; GPT_GPTFLG1 |= 1 << p_pin
-                                       ; 1 -> d1 (hint: MOVEQ.L)
-                                       ; 1 << p_pin -> d1 (hint: LSL.L)
-                                       ; &GPT_GPTFLG1 -> a0 (hint: LEA)
-                                       ; GPT_GPTFLG1 -> d2 (hint: MOVE.B)
-                                       ; GPT_GPTFLG1 | (1 << p_pin) -> d2  (hint: OR.L)
-                                       ; GPT_GPTFLG1 = GPT_GPTFLG1 | (1 << p_pin) (hint: MOVE.B)
+    moveq.l    #1, d1                  ; 1 -> d1 (hint: MOVEQ.L)
+    lsl.l      d1, d0, #1              ; 1 << p_pin -> d1 (hint: LSL.L)
+    lea	       &GPT_GPTFLG1, a0        ; &GPT_GPTFLG1 -> a0 (hint: LEA)
+    move.b     a0, d2                  ; GPT_GPTFLG1 -> d2 (hint: MOVE.B)
+    or.l       d2, d0                  ; GPT_GPTFLG1 | (1 << p_pin) -> d2  (hint: OR.L)
+    move.b     d2, GPT_GPTFLG1         ; GPT_GPTFLG1 = GPT_GPTFLG1 | (1 << p_pin) (hint: MOVE.B)
 
     movem.l    (a7), d0-d2/a0          ; Restore d0-d2 and a0
     unlk       a6                      ; Destroy stack frame
