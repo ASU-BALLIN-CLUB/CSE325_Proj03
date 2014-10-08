@@ -122,9 +122,9 @@ _gpt_clr_flag:
 ;-----------------------------------------------------------------------------------------------------------------------------------
 _gpt_disable:
 ; GPT_GPTSCR1 = 0x00
-                                        ; &GPT_GPTSCR1 -> a0 (hint: LEA)
-                                        ; 0x00 -> GPT_GPTSCR1 (hint: MOVE.B)
-                                        ; return
+    lea        &GPT_GPTSCR1, a0        ; &GPT_GPTSCR1 -> a0 (hint: LEA)
+    move.b     #0, a0                  ; 0x00 -> GPT_GPTSCR1 (hint: MOVE.B)
+    rts                                ; return
 
 ;-----------------------------------------------------------------------------------------------------------------------------------
 ; FUNCTION: __declspec(register_abi) void gpt_enable()
