@@ -46,6 +46,7 @@ typedef enum {
 typedef enum {
  gpio_port_dd = 0x14, // Offset to the DD register from the beginning of a GPIO reg's address space
  gpio_port_tc = 0x0F, // Offset to the TC register from the beginning of a GPIO reg's address space
+ gpio_port_ta = 0x0E  // Offset to the TA register from the beginning of a GPIO reg's address space
 } gpio_port_t;
 
 
