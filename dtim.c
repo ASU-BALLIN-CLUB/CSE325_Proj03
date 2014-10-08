@@ -1,5 +1,5 @@
 //
-//  uc_led.h
+//  dtim.c
 //
 //	Proj02
 //  Lab Partners: Sean Slamka, Aydin Balci
@@ -7,24 +7,46 @@
 //  CSE325 Embedded Microprocessor Systems
 //  Fall 2014
 //
-#ifndef ____uc_led__
-#define ____uc_led__
 
-#include "gpio.h"
-#include "support_common.h"
 
-typedef enum {
- uc_led_1 = 1, // Represents LED1
- uc_led_2 = 2, // Represents LED2
- uc_led_3 = 3, // Represents LED3
- uc_led_4 = 4 // Represents LED4
-} uc_led_t;
+#include "dtim.h"
 
-void uc_led_all_off();
-void uc_led_all_on();
-void uc_led_init();
-void uc_led_off(gpio_pin_t p_led);
-void uc_led_on(gpio_pin_t p_led);
-void uc_led_toggle(gpio_pin_t p_led);
+// The base address in the peripheral register range of the DTIM module registers.
+static uint32 const DTIM_BASE = 0x40000400;
+// The addresses of the DTIM registers for timers n = 0, 1, 2, and 3.
+#define DTIM_DTCN(timer) *(volatile uint32 *) (DTIM_BASE + 0x0C + ((timer) << 6))
+#define DTIM_DTCR(timer) *(volatile uint32 *) (DTIM_BASE + 0x08 + ((timer) << 6))
+#define DTIM_DTER(timer) *(volatile uint8 *) (DTIM_BASE + 0x03 + ((timer) << 6))
+#define DTIM_DTMR(timer) *(volatile uint16 *) (DTIM_BASE + 0x00 + ((timer) << 6))
+#define DTIM_DTRR(timer) *(volatile uint32 *) (DTIM_BASE + 0x04 + ((timer) << 6))
+#define DTIM_DTXMR(timer) *(volatile uint8 *) (DTIM_BASE + 0x02 + ((timer) << 6))
 
-#endif /* defined (__uc_led__) */
+// Function which takes a timer and unsigned 32 bit integer input and tells
+// if the input is small enough to be entered as microseconds rather than miliseconds.
+// Then calls the microsecond function if it is small enough.
+void dtim_busy_delay_ms(dtim_t const p_timer, uint32 const p_msecs)
+{
+	if(p_msecs < 4294968)
+	{
+		dtim_busy_delay_us(p_timer, p_msecs * 1000);
+	}
+}
+// The timer delay function with microseconds rather than miliseconds.
+void dtim_busy_delay_us(dtim_t const p_timer, uint32 const p_usecs)
+{
+	DTIM_DTER(p_timer) = 0x03;
+	DTIM_DTCN(p_timer) = 0;
+	DTIM_DTRR(p_timer) = (uint32)(p_usecs - 1);
+	DTIM_DTMR(p_timer) |= 0x0001;
+	while(~DTIM_DTER(p_timer) & 0x02)
+	{
+	}
+}
+// Initializes the Timers.
+void dtim_init(dtim_t const p_timer)
+{
+	DTIM_DTMR(p_timer) |= 0x0001;
+	DTIM_DTMR(p_timer) &= ~(0x0001);
+	DTIM_DTMR(p_timer) = 0x4F02;
+	DTIM_DTXMR(p_timer) = 0x40;
+}
