@@ -20,6 +20,8 @@ static uint32 const DTIM_BASE = 0x40000400;
 #define DTIM_DTMR(timer) *(volatile uint16 *) (DTIM_BASE + 0x00 + ((timer) << 6))
 #define DTIM_DTRR(timer) *(volatile uint32 *) (DTIM_BASE + 0x04 + ((timer) << 6))
 #define DTIM_DTXMR(timer) *(volatile uint8 *) (DTIM_BASE + 0x02 + ((timer) << 6))
+static int_isr_t g_dtim_callbacks[4] = {0};
+static int_isr_t g_dtim_irsrs[4] = {dtim0_isr, dtim1_isr, dtim2_isr, dtim3_isr};
 
 // Function which takes a timer and unsigned 32 bit integer input and tells
 // if the input is small enough to be entered as microseconds rather than miliseconds.
@@ -49,4 +51,54 @@ void dtim_init(dtim_t const p_timer)
 	DTIM_DTMR(p_timer) &= ~(0x0001);
 	DTIM_DTMR(p_timer) = 0x4F02;
 	DTIM_DTXMR(p_timer) = 0x40;
+}
+
+void dtim_init_irq(dtim_t const p_timer, unit32 const p_usecs, int_isr_t const p_callback)
+{
+	DTIM_DTMR(p_timer) |= (0x01);
+	DTIM_DTMR(p_timer) &= (0xFFFE);
+	DTIM_DTMR(p_timer) = 0x4F1A;
+	DTIM_DRXMR(p_timer) = 0x40;
+	DTIM_DTCN(p_timer) = 0x0;
+	DTIM_DTRR(p_timer) = (unit32)(p_usecs - 1);
+	DTIM_DTER(p_timer) |= (0x02);
+	g_dtim_callbacks[p_timer] = p_callback;
+	//int_config(GPI_INT_SRC(p_timer), GPI_INT_LVL(p_timer), GPI_INT_PRI(p_timer), g_dtim_isrs[p_timer]);
+	DTIM_DTMR(p_timer) |= (0x01);
+}
+
+void dtim0_isr()
+{
+	DTIM_DTER(0) |= (0x02);
+	if(g_dtim_callbacks[0] != NULL)
+	{
+		g_dtim_callbacks[0];
+	}
+}
+
+void dtim1_isr()
+{
+	DTIM_DTER(1) |= (0x02);
+	if(g_dtim_callbacks[1] != NULL)
+	{
+		g_dtim_callbacks[1];
+	}
+}
+
+void dtim2_isr()
+{
+	DTIM_DTER(2) |= (0x02);
+	if(g_dtim_callbacks[2] != NULL)
+	{
+		g_dtim_callbacks[2];
+	}
+}
+
+void dtim3_isr()
+{
+	DTIM_DTER(3) |= (0x02);
+	if(g_dtim_callbacks[3] != NULL)
+	{
+		g_dtim_callbacks[3];
+	}
 }
