@@ -34,9 +34,9 @@ GPT_GPTSCR2:   .equ GPT_BASE + $000D  ; 8-bit reg
 ;===================================================================================================================================
 
 .global _gpt_clr_flag
-.global _void gpt_disable
-.global _void gpt_enable
-.global _void gpt_incap_config
+.global _gpt_disable
+.global _gpt_enable
+.global _gpt_incap_config
 
 ;===================================================================================================================================
 ; Text Section
