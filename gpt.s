@@ -86,8 +86,8 @@ _gpt_clr_flag:
 
 ; GPT_GPTFLG1 |= 1 << p_pin
     moveq.l    #1, d1                  ; 1 -> d1 (hint: MOVEQ.L)
-    lsl.l      d1, d0, #1              ; 1 << p_pin -> d1 (hint: LSL.L)
-    lea	       &GPT_GPTFLG1, a0        ; &GPT_GPTFLG1 -> a0 (hint: LEA)
+    lsl.l      d0, d1                  ; 1 << p_pin -> d1 (hint: LSL.L)
+    lea	       GPT_GPTFLG1, a0         ; &GPT_GPTFLG1 -> a0 (hint: LEA)
     move.b     a0, d2                  ; GPT_GPTFLG1 -> d2 (hint: MOVE.B)
     or.l       d2, d0                  ; GPT_GPTFLG1 | (1 << p_pin) -> d2  (hint: OR.L)
     move.b     d2, GPT_GPTFLG1         ; GPT_GPTFLG1 = GPT_GPTFLG1 | (1 << p_pin) (hint: MOVE.B)
@@ -122,7 +122,7 @@ _gpt_clr_flag:
 ;-----------------------------------------------------------------------------------------------------------------------------------
 _gpt_disable:
 ; GPT_GPTSCR1 = 0x00
-    lea        &GPT_GPTSCR1, a0        ; &GPT_GPTSCR1 -> a0 (hint: LEA)
+    lea        GPT_GPTSCR1, a0         ; &GPT_GPTSCR1 -> a0 (hint: LEA)
     move.b     #$00, a0                ; 0x00 -> GPT_GPTSCR1 (hint: MOVE.B)
     rts                                ; return
 
@@ -152,7 +152,7 @@ _gpt_disable:
 ;-----------------------------------------------------------------------------------------------------------------------------------
 _gpt_enable:
 ; GPT_GPTSCR1 = 0x80
-    lea        &GPT_GPTSCR1, a0        ; &GPT_GPTSCR1 -> a0 (hint: LEA)
+    lea        GPT_GPTSCR1, a0         ; &GPT_GPTSCR1 -> a0 (hint: LEA)
     move.b     #$80, a0                ; 0x80 -> GPT_GPTSCR1 (hint: MOVE.B)
     rts                                ; return
 
@@ -208,66 +208,66 @@ _gpt_enable:
 ; a2-a5              Does not have to save              Must be saved and restored
 ;-----------------------------------------------------------------------------------------------------------------------------------
 _gpt_incap_config:
-                                       ; Create stack frame and allocate 2 longwords on stack for d3 and d4 (hint: LINK)
-                                       ; Push d3 and d4 (actually pushes d4 first) (hint: see MOVEM.L in _gpt_clr_flag)
+    link       a6, #-8                 ; Create stack frame and allocate 2 longwords on stack for d3 and d4 (hint: LINK)
+    movem.l    d3-d4, (a7)             ; Push d3 and d4 (actually pushes d4 first) (hint: see MOVEM.L in _gpt_clr_flag)
 
 ; gpt_disable()
-                                       ; Allocate 2 longwords on stack so we can save d0-d1 (hint ADDA.L or SUBA.L)
-                                       ; Push d0-d1 (hint: MOVEM.L)
-                                       ; Disable the GPT while configuring the pin by calling _gpt_disable
-                                       ; Pop d0-d1 (Hint: MOVEM.L) Note: allocated room on stack for d0-d1 is deallocated by UNLK
+    adda.l     #-8, a7                 ; Allocate 2 longwords on stack so we can save d0-d1 (hint ADDA.L or SUBA.L)
+    movem.l    d0-d1, (a7)             ; Push d0-d1 (hint: MOVEM.L)
+    _gpt_disable                       ; Disable the GPT while configuring the pin by calling _gpt_disable
+    movem.l    (a7), d0-d1             ; Pop d0-d1 (Hint: MOVEM.L) Note: allocated room on stack for d0-d1 is deallocated by UNLK
 
 ; GPTIOS &= ~(1 << p_pin)
-                                       ; 1 -> d3 (hint: MOVEQ.L)
-                                       ; 1 << p_pin -> d3 (hint: LSL.L)
-                                       ; ~(1 << p_pin) -> d3 (hint: NOT.L)
-                                       ; &GPT_GPTIOS -> a0 (hint: LEA)
-                                       ; GPT_GPTIOS -> d4 (hint: MOVE.B)
-                                       ; GPT_GPTIOS & ~(1 << p_pin) -> d4 (hint: AND.L)
-                                       ; GPTIOS &= ~(1 << p_pin) (hint: MOVE.B)
+    moveq.l    #1, d3                  ; 1 -> d3 (hint: MOVEQ.L)
+    lsl.l      d0, d3                  ; 1 << p_pin -> d3 (hint: LSL.L)
+    not.l      d3                      ; ~(1 << p_pin) -> d3 (hint: NOT.L)
+    lea        GPT_GPTIOS, a0          ; &GPT_GPTIOS -> a0 (hint: LEA)
+    move.b     a0, d4                  ; GPT_GPTIOS -> d4 (hint: MOVE.B)
+    and.l      d4, a0, d3              ; GPT_GPTIOS & ~(1 << p_pin) -> d4 (hint: AND.L)
+    move.b     d4, a0                  ; GPTIOS &= ~(1 << p_pin) (hint: MOVE.B)
 
 ; GPTCTL2 &= ~(0x03 << (2 * p_pin)
-                                       ; p_pin -> d4 (hint: MOVE.L)
-                                       ; 2 * p_pin -> d4 (hint: use LSL.L to quickly multiply by 2)
-                                       ; 0x03 -> d3 (hint: MOVEQ.L)
-                                       ; 0x03 << (2 * p_pin) -> d3 (hint: LSL.L)
-                                       ; ~(0x03 << (2 * p_pin)) -> d3 (hint: NOT.L)
-                                       ; &GPT_GPTCTL2 -> a0 (hint: LEA)
-                                       ; GPT_GPTCTL2 -> d4 (hint: MOVE.B)
-                                       ; GPT_GPTCTL2 & ~(0x03 << (2 * p_pin)) -> d3 (hint: AND.L)
-                                       ; GPTCTL2 &= ~(0x03 << (2 * p_pin)) (hint: MOVE.B)
+    move.l     d0, d4                  ; p_pin -> d4 (hint: MOVE.L)
+    lsl.l      #1, d4                  ; 2 * p_pin -> d4 (hint: use LSL.L to quickly multiply by 2)
+    moveq.l    #$03, d3                ; 0x03 -> d3 (hint: MOVEQ.L)
+    lsl.l      d4, d3                  ; 0x03 << (2 * p_pin) -> d3 (hint: LSL.L)
+    not.l      d3                      ; ~(0x03 << (2 * p_pin)) -> d3 (hint: NOT.L)
+    lea        GPT_GPTCTL2, a0         ; &GPT_GPTCTL2 -> a0 (hint: LEA)
+    move.b     a0, d4                  ; GPT_GPTCTL2 -> d4 (hint: MOVE.B)
+    and.l      d3, a0, d4              ; GPT_GPTCTL2 & ~(0x03 << (2 * p_pin)) -> d3 (hint: AND.L)
+    move.b     d3, a0                  ; GPTCTL2 &= ~(0x03 << (2 * p_pin)) (hint: MOVE.B)
 
 ; GPTCTL2 |= p_incap_edge << (2 * p_pin)
-                                       ; p_pin -> d4 (hint: MOVE.L)
-                                       ; 2 * p_pin -> d4 (hint: LSL.L)
-                                       ; p_incap_edge -> d3 (hint MOVE.L)
-                                       ; p_incap_edge << (2 * p_pin) -> d3 (hint: LSL.L)
-                                       ; GPT_GPTCTL2  -> d4 (hint: MOVE.B)
-                                       ; GPT_GPTCTL2 | p_incap_edge << (2 * p_pin) -> d3 (hint: OR.L)
-                                       ; GPTCTL2 |= p_incap_edge << (2 * p_pin) (hint: MOVE.B)
+    move.l     d0, d4                  ; p_pin -> d4 (hint: MOVE.L)
+    lsl.l      #1, d4                  ; 2 * p_pin -> d4 (hint: LSL.L)
+    move.l     d1, d3                  ; p_incap_edge -> d3 (hint MOVE.L)
+    lsl.l      d4, d3                  ; p_incap_edge << (2 * p_pin) -> d3 (hint: LSL.L)
+    move.b     a0, d4                  ; GPT_GPTCTL2  -> d4 (hint: MOVE.B)
+    or.l       d3, a0, d4              ; GPT_GPTCTL2 | p_incap_edge << (2 * p_pin) -> d3 (hint: OR.L)
+    move.b     d3, a0                  ; GPTCTL2 |= p_incap_edge << (2 * p_pin) (hint: MOVE.B)
 
 ; GPTIE |= 1 << p_pin
-                                       ; 1 -> d3 (hint: MOVEQ.L)
-                                       ; 1 << p_pin -> d3 (hint: LSL.L)
-                                       ; &GPT_GPTIE -> a0 (hint: LEA)
-                                       ; GPT_GPTIE -> d4 (hint: MOVE.B)
-                                       ; GPT_GPTIE | 1 << p_pin -> d4 (hint: OR.L)
-                                       ; GPTIE |= 1 << p_pin (hint: MOVE.B)
+    moveq.l    #1, d3                  ; 1 -> d3 (hint: MOVEQ.L)
+    lsl.l      d0, d3                  ; 1 << p_pin -> d3 (hint: LSL.L)
+    lea        GPT_GPTIE, a0           ; &GPT_GPTIE -> a0 (hint: LEA)
+    move.b     a0, d4                  ; GPT_GPTIE -> d4 (hint: MOVE.B)
+    or.l       d4, a0, d3              ; GPT_GPTIE | 1 << p_pin -> d4 (hint: OR.L)
+    move.b     d4, a0                  ; GPTIE |= 1 << p_pin (hint: MOVE.B)
 
 ; GPTFLG1 |= 1 << p_pin
-                                       ; &GPT_GPTFLG1 -> a0 (hint: LEA)
-                                       ; GPT_GPTFLG1 -> d4 (hint: MOVE.B)
-                                       ; GPT_GPTFLG1 | 1 << p_pin -> d4 (hint: OR.L)
-                                       ; GPTFLG1 |= 1 << p_pin (hint: MOVE.B)
+    lea        GPT_GPTFLG1, a0         ; &GPT_GPTFLG1 -> a0 (hint: LEA)
+    move.b     a0, d4                  ; GPT_GPTFLG1 -> d4 (hint: MOVE.B)
+    or.l       d4, a0, d3              ; GPT_GPTFLG1 | 1 << p_pin -> d4 (hint: OR.L)
+    move.b     d4, a0                  ; GPTFLG1 |= 1 << p_pin (hint: MOVE.B)
 
 ; GPTDDR &= ~(1 << p_pin)
-                                       ; ~(1 << p_pin) -> d3 (hint: NOT.L)
-                                       ; &GPT_GPTDDR -> a0 (hint: LEA)
-                                       ; GPT_GPTDDR -> d4 (hint: MOVE.B)
-                                       ; GPT_GPTDDR & ~(1 << p_pin) -> d4 (hint: AND.L)
-                                       ; GPTDDR &= ~(1 << p_pin) (hint: MOVE.B)
+    not.l      d3                      ; ~(1 << p_pin) -> d3 (hint: NOT.L)
+    lea        GPT_GPTDDR, a0          ; &GPT_GPTDDR -> a0 (hint: LEA)
+    move.b     a0, d4                  ; GPT_GPTDDR -> d4 (hint: MOVE.B)
+    and.l      d4, a0, d3              ; GPT_GPTDDR & ~(1 << p_pin) -> d4 (hint: AND.L)
+    move.b     d3, a0                  ; GPTDDR &= ~(1 << p_pin) (hint: MOVE.B)
 
 ; Restore d3-d4, destroy stack frame and return.
-                                       ; (Hint: MOVEM.L)
-                                       ; (Hint: UNLK)
-                                       ; Return
+    movem.l    (a7), d3-d4             ; (Hint: MOVEM.L)
+    unlk       a6                      ; (Hint: UNLK)
+    rts                                ; Return
