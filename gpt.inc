@@ -16,17 +16,17 @@
 ;===================================================================================================================================
 
 ; Enumerated type: gpt_pin_t.
-gpt_pin_0:  0
-gpt_pin_1:  1
-gpt_pin_2:  2
-gpt_pin_3:  3
+gpt_pin_0:  .equ 0
+gpt_pin_1:  .equ 1
+gpt_pin_2:  .equ 2
+gpt_pin_3:  .equ 3
 
 ; Enumerated type: gpt_incap_edge_t.
 ; GPT input capture edge control. These values are used when configuring GPTIE
-gpt_incap_edge_disabled: 0
-gpt_incap_edge_rising:   1
-gpt_incap_edge_falling:  2
-gpt_incap_edge_both:     3
+gpt_incap_edge_disabled: .equ 0
+gpt_incap_edge_rising:   .equ 1
+gpt_incap_edge_falling:  .equ 2
+gpt_incap_edge_both:     .equ 3
 
 ;===================================================================================================================================
 ; Public Function Declarations
