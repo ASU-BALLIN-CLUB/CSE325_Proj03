@@ -70,3 +70,4 @@ __declspec(register_abi) void gpt_enable();
 __declspec(register_abi) void gpt_incap_config(gpt_pin_t const p_pin, gpt_incap_edge_t const p_incap_edge);
 
 #endif
+ 
