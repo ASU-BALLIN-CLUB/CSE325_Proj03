@@ -1,7 +1,7 @@
 //
 //  uc_led.h
 //
-//	Proj02
+//	Proj03
 //  Lab Partners: Sean Slamka, Aydin Balci
 //  Email: sslamka@asu.edu, abalci@asu.edu
 //  CSE325 Embedded Microprocessor Systems
