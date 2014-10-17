@@ -1,7 +1,7 @@
 //
 //  gpio.c
 //
-//	Proj02
+//	Proj03
 //  Lab Partners: Sean Slamka, Aydin Balci
 //  Email: sslamka@asu.edu, abalci@asu.edu
 //  CSE325 Embedded Microprocessor Systems
@@ -28,13 +28,16 @@ void gpio_port_init(gpio_port_t p_port, gpio_pin_t p_pin, gpio_funct_t p_funct, 
 	 switch (p_port)
 	 {
 	 	case gpio_port_dd:
-	 		GPIO_PAR(p_port) &= 0;
-	 		GPIO_PAR(p_port) &= 0;
+	 		GPIO_PAR(p_port) &= ~(1 << p_pin);
+	 		GPIO_PAR(p_port) |= (p_funct << p_pin);
 	 		break;
 	 	case gpio_port_tc:
-	 		GPIO_PAR(p_port) &= 0;
-	 		GPIO_PAR(p_port) &= 0;
+	 		GPIO_PAR(p_port) &= ~(3 << 2*p_pin);
+	 		GPIO_PAR(p_port) |= (p_funct << p_pin);
 	 		break;
+	 	case gpio_port_ta:
+	 		GPIO_PAR(p_port) &= ~(3 << 2*p_pin);
+	 		GPIO_PAR(p_port) |= (p_funct << p_pin);
 	 	default:
 	 		break;
 	}
