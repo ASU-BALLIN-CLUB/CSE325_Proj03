@@ -13,7 +13,7 @@
 ; Look at Table 25-3 on pp. 25-3 to 25-4 in the IMRM. The base address of the GPT register space is IPSBAR + 0x1A_0000. Table 25-3
 ; lists all of the GPT registers and their offsets from IPSBAR. Note that all of the GPT registers are 8-bits.
 ;===================================================================================================================================
-GPT_BASE:      .equ IPSBAR + 0x1A_0000
+GPT_BASE:      .equ IPSBAR + $1A0000
 GPT_GPTCNT:    .equ GPT_BASE + $0004  ; 8-bit reg
 GPT_GPTCTL2:   .equ GPT_BASE + $000B  ; 8-bit reg
 GPT_GPTDDR:    .equ GPT_BASE + $001E  ; 8-bit reg
@@ -123,7 +123,7 @@ _gpt_clr_flag:
 _gpt_disable:
 ; GPT_GPTSCR1 = 0x00
     lea        GPT_GPTSCR1, a0         ; &GPT_GPTSCR1 -> a0 (hint: LEA)
-    move.b     #$00, a0                ; 0x00 -> GPT_GPTSCR1 (hint: MOVE.B)
+    move.b     #$00, (a0)              ; 0x00 -> GPT_GPTSCR1 (hint: MOVE.B)
     rts                                ; return
 
 ;-----------------------------------------------------------------------------------------------------------------------------------
@@ -151,9 +151,9 @@ _gpt_disable:
 ; This is a leaf procedure so there is no need to create and destroy a stack frame.
 ;-----------------------------------------------------------------------------------------------------------------------------------
 _gpt_enable:
-; GPT_GPTSCR1 = 0x80
+ ; GPT_GPTSCR1 = 0x80
     lea        GPT_GPTSCR1, a0         ; &GPT_GPTSCR1 -> a0 (hint: LEA)
-    move.b     #$80, a0                ; 0x80 -> GPT_GPTSCR1 (hint: MOVE.B)
+    move.b     #$80, (a0)              ; 0x80 -> GPT_GPTSCR1 (hint: MOVE.B)
     rts                                ; return
 
 
@@ -214,7 +214,7 @@ _gpt_incap_config:
 ; gpt_disable()
     adda.l     #-8, a7                 ; Allocate 2 longwords on stack so we can save d0-d1 (hint ADDA.L or SUBA.L)
     movem.l    d0-d1, (a7)             ; Push d0-d1 (hint: MOVEM.L)
-    _gpt_disable                       ; Disable the GPT while configuring the pin by calling _gpt_disable
+    jsr        _gpt_disable            ; Disable the GPT while configuring the pin by calling _gpt_disable
     movem.l    (a7), d0-d1             ; Pop d0-d1 (Hint: MOVEM.L) Note: allocated room on stack for d0-d1 is deallocated by UNLK
 
 ; GPTIOS &= ~(1 << p_pin)
